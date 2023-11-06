@@ -229,6 +229,28 @@ plt.ylabel("Contagem")
 plt.xticks(rotation=45, ha="right")  # Rotaciona as legendas para melhor visualização
 plt.show()
 
+# Divida os dados em conjuntos de treinamento e teste
+X = df[["LATITUDE", "LONGITUDE"]]
+y = df["RUBRICA"]
+
+X_treino, X_teste, y_treino, y_teste = train_test_split(
+    X, y, test_size=0.2, random_state=42
+)
+
+# Criar e treinar o modelo de Regressão Logística com um número maior de iterações
+modelo_logistic = LogisticRegression(max_iter=10000, random_state=42)
+modelo_logistic.fit(X_treino, y_treino)
+
+# Fazer previsões no conjunto de teste
+y_pred_logistic = modelo_logistic.predict(X_teste)
+
+# Avaliar o desempenho do modelo de Regressão Logística
+acuracia_logistic = accuracy_score(y_teste, y_pred_logistic)
+print(
+    f"Acurácia do modelo de Regressão Logística para o Gráfico 6: {acuracia_logistic * 100:.2f}%"
+)
+
+
 # Gráfico 7: Distribuição de Crimes por Cidade
 plt.figure(figsize=(12, 6))
 sns.countplot(
