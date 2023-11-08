@@ -5,8 +5,6 @@ import pandas as pd
 import seaborn as sns
 from folium import plugins
 from folium.plugins import HeatMap
-from matplotlib.dates import date2num
-from sklearn.decomposition import PCA
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.metrics import (
@@ -16,7 +14,7 @@ from sklearn.metrics import (
     mean_squared_error,
 )
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import LabelEncoder, OneHotEncoder, StandardScaler
+from sklearn.preprocessing import StandardScaler
 
 # Ler o conjunto de dados com tipos de dados especificados e desabilitando low_memory
 dtype = {"LATITUDE": "float64", "LONGITUDE": "float64", "CIDADE": "str"}
@@ -115,7 +113,7 @@ plt.xticks(rotation=45, ha="right")
 plt.tight_layout()
 plt.show()
 
-# IA: Mostra a contagem de ocorrências para cada Delegacia com previsões do modelo Random Forest
+# Amostrar uma fração menor dos dados para treinamento
 df_reduzido = df.sample(frac=0.1, random_state=42)
 
 # Pré-processamento dos dados
@@ -131,19 +129,26 @@ X_treino, X_teste, y_treino, y_teste = train_test_split(
     X, y, test_size=0.2, random_state=42
 )
 
-# Criar e treinar o modelo Random Forest
-modelo_rf = RandomForestClassifier(n_estimators=100, random_state=42)
-modelo_rf.fit(X_treino, y_treino)
+# Escalonar os dados (opcional, mas pode melhorar o desempenho do modelo)
+scaler = StandardScaler()
+X_treino = scaler.fit_transform(X_treino)
+X_teste = scaler.transform(X_teste)
+
+# Criar e treinar o modelo de Regressão Logística
+modelo_logistic = LogisticRegression(max_iter=1000, random_state=42)
+modelo_logistic.fit(X_treino, y_treino)
 
 # Fazer previsões no conjunto de teste
-y_pred_rf = modelo_rf.predict(X_teste)
+y_pred_logistic = modelo_logistic.predict(X_teste)
 
-# Avaliar o desempenho do modelo de Random Forest
-acuracia_rf = accuracy_score(y_teste, y_pred_rf)
-print(f"Acurácia do modelo de Random Forest para o Gráfico 3: {acuracia_rf * 100:.2f}%")
+# Avaliar o desempenho do modelo de Regressão Logística
+acurácia_logistic = accuracy_score(y_teste, y_pred_logistic)
+print(
+    f"Acurácia do modelo de Regressão Logística para o Gráfico 3: {acurácia_logistic * 100:.2f}%"
+)
 
 # Gerar as previsões para a contagem de ocorrências por delegacia
-contagem_delegacia_prevista = pd.DataFrame({"DELEGACIA_NUM_PREDICTED": y_pred_rf})
+contagem_delegacia_prevista = pd.DataFrame({"DELEGACIA_NUM_PREDICTED": y_pred_logistic})
 contagem_delegacia_prevista["DELEGACIA_NUM_PREDICTED"] = contagem_delegacia_prevista[
     "DELEGACIA_NUM_PREDICTED"
 ].apply(lambda x: x if x in contagem_delegacia else "Outras")
@@ -160,7 +165,7 @@ top_delegacias = ocorrencias_por_delegacia.index[:10]
 # Filtrar as delegacias
 df_filtrado = df_reduzido[df_reduzido["DELEGACIA_NUM"].isin(top_delegacias)]
 
-# Criar o gráfico de contagem de ocorrências por delegacia com as previsões do modelo Random Forest
+# Criar o gráfico de contagem de ocorrências por delegacia com as previsões do modelo de Regressão Logística
 plt.figure(figsize=(12, 6))
 sns.barplot(
     x=df_filtrado["DELEGACIA_NUM"].value_counts().values,
@@ -169,7 +174,9 @@ sns.barplot(
     palette="viridis",
     legend=False,  # Remover a legenda
 )
-plt.title("Previsão de Contagem de Ocorrências por Delegacia (Usando Random Forest)")
+plt.title(
+    "Previsão de Contagem de Ocorrências por Delegacia (Usando Regressão Logística)"
+)
 plt.xlabel("Número de Ocorrências (Previsto)")
 plt.ylabel("Delegacia")
 plt.xticks(rotation=45, ha="right")  # Rotacionar as legendas do eixo y
