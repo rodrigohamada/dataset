@@ -129,7 +129,7 @@ X_treino, X_teste, y_treino, y_teste = train_test_split(
     X, y, test_size=0.2, random_state=42
 )
 
-# Escalonar os dados (opcional, mas pode melhorar o desempenho do modelo)
+# Escalonar os dados (pode melhorar o desempenho do modelo)
 scaler = StandardScaler()
 X_treino = scaler.fit_transform(X_treino)
 X_teste = scaler.transform(X_teste)
