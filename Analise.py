@@ -351,5 +351,9 @@ plt.xlabel("Ano")
 plt.ylabel("Número de Ocorrências")
 plt.legend()
 
+# Avaliação do modelo
+acuracia_media = model.score(X, y)  # Coeficiente de determinação (R²)
+print(f"Acurácia Média do Modelo: {acuracia_media:.2f}")
+
 # Exiba o gráfico
 plt.show()
